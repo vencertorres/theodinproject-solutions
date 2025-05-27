@@ -66,8 +66,8 @@ class Mastermind
         break
       end
 
-      if attempt == MAX_ATTEMPTS
-        puts "Game Over. The code was #{code.join}"
+      if attempt == MAX_ATTEMPTS - 1
+        puts "Game Over. The code was #{@code.join}"
       end
     end
   end
