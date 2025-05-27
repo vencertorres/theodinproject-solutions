@@ -1,76 +1,74 @@
 class Mastermind
+  MAX_ATTEMPTS = 12
+
   def initialize
-    @secret = Array.new(4) {rand(1..6)}
-    @max_turns = 12
-    reset
+    @code = Array.new(4) {rand(1..6)}
   end
 
-  def display_board
-    puts "\n#{@guess.join(" ")} | #{@feedback.compact.join(" ")}\n\n"
+  def display_feedback(feedback)
+    black_pegs = feedback.count("O")
+    white_pegs = feedback.count("X")
+    puts "\n#{black_pegs} black peg(s), #{white_pegs} white peg(s)\n\n"
   end
 
-  def valid_guess?(guess)
-    (1..6).include?(guess)
-  end
-
-  def check_guess
+  def get_feedback(guess)
+    guess = guess.digits.reverse
+    feedback = []
     seen_count = Hash.new(0)
 
     # Find correctly placed pegs
-    @secret.each_with_index do |peg, i|
-      if @guess[i] == peg
-        @feedback[i] = "O"
-        seen_count[peg] += 1
+    @code.each_index do |i|
+      if guess[i] == @code[i]
+        feedback[i] = "O"
+        seen_count[guess[i]] += 1
       end
     end
 
     # Find incorrectly placed pegs
-    @secret.each_index do |i|
-      if @feedback[i] == "O"
+    @code.each_index do |i|
+      if feedback[i] == "O"
         next
-      elsif @secret.include?(@guess[i]) && seen_count[@guess[i]] < @secret.count(@guess[i])
-        @feedback[i] = "X"
-        seen_count[@guess[i]] += 1
+      elsif @code.include?(guess[i]) && seen_count[guess[i]] < @code.count(guess[i])
+        feedback[i] = "X"
+        seen_count[guess[i]] += 1
       end
     end
+
+    display_feedback(feedback)
   end
   
-  def set_player_guess
-    (1..4).each do |peg|
-      loop do
-        print "Peg ##{peg} (1-6): "
-        current_guess = gets.chomp.to_i
-        if valid_guess?(current_guess)
-          @guess << current_guess
-          break
-        end
-      end
-    end
-  end
-
-  def reset
-    @guess = []
-    @feedback = Array.new(4) {nil}
+  def valid_guess?(guess)
+    guess.digits.length == 4 && guess.digits.all? { |num| num.between?(1, 6) }
   end
 
   def play
-    (1..@max_turns).each do |turn|
-      puts "Turns remaining: #{@max_turns - turn}\n\n"
-      set_player_guess
-      check_guess
-      display_board
+    puts "Welcome to Mastermind!"
+    puts "Guess the 4-digit code. You have #{MAX_ATTEMPTS} attempts.\n\n"
 
-      if @secret.each_with_index.all? { |peg, i| peg == @guess[i] }
-        puts "You win!"
+    MAX_ATTEMPTS.times do |attempt|
+      puts "Attempts remaining: #{MAX_ATTEMPTS - (attempt + 1)}\n\n"
+      
+      guess = nil
+      loop do
+        print "Enter your guess: "
+
+        guess = gets.chomp.to_i
+
+        break if valid_guess?(guess)
+
+        puts "Invalid input. Please enter 4 numbers (1-6)."
+      end
+
+      get_feedback(guess)
+
+      if guess == @code.join.to_i
+        puts "Congratulations! You cracked the code!"
         break
       end
 
-      if turn == @max_turns
-        puts "Game Over"
-        puts "Secret: #{@secret.join(" ")}\n\n"
+      if attempt == MAX_ATTEMPTS
+        puts "Game Over. The code was #{code.join}"
       end
-
-      reset
     end
   end
 end
